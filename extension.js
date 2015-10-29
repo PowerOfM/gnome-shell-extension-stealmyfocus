@@ -1,44 +1,36 @@
-const Main = imports.ui.main;
-const WindowAttentionHandler = imports.ui.windowAttentionHandler;
-const Shell = imports.gi.Shell;
-const Lang = imports.lang;
+/* global imports */
 
-function StealMyFocus() {
-    this._init();
-    this.blacklist = ["Skype"];
+const Main = imports.ui.main
+const WindowAttentionHandler = imports.ui.windowAttentionHandler
+const Shell = imports.gi.Shell
+const Lang = imports.lang
+
+// Class StealMyFocus
+function StealMyFocus () {
+  this._init()
+  this.blacklist = {'skype': true}
 }
 
-StealMyFocus.prototype = {
-    _init : function() {
-        this._tracker = Shell.WindowTracker.get_default();
-        this._handlerid = global.display.connect('window-demands-attention', Lang.bind(this, this._onWindowDemandsAttention));
-    },
-
-    _onWindowDemandsAttention: function(display, window) {
-        for (var i = 0; i < this.blacklist.length; i++) {
-            var name = this.blacklist[i].toLowerCase();
-            if (window.title.toLowerCase().indexOf(name) != -1) {
-                // app in blacklist, return and do nothing
-                return;
-            }
-        }
-        Main.activateWindow(window);
-    },
-
-    destroy: function () {
-        global.display.disconnect(this._handlerid);
-    }
+StealMyFocus.prototype._init = function () {
+  this._tracker = Shell.WindowTracker.get_default()
+  this._handlerid = global.display.connect('window-demands-attention', Lang.bind(this, this._onWindowDemandsAttention))
+}
+StealMyFocus.prototype._onWindowDemandsAttention = function (display, window) {
+  if (this.blacklist[window.title.toLowerCase()]) return false
+  Main.activateWindow(window)
 }
 
-let stealmyfocus;
-
-function init() {
+StealMyFocus.destroy = function () {
+  global.display.disconnect(this._handlerid)
 }
 
-function enable() {
-    stealmyfocus = new StealMyFocus();
-}
+// GNome Extension
+let stealmyfocus
 
-function disable() {
-    stealmyfocus.destroy();
+function init () {}
+function enable () {
+  stealmyfocus = new StealMyFocus()
+}
+function disable () {
+  stealmyfocus.destroy()
 }
